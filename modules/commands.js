@@ -4,31 +4,31 @@ const commands = {
       inline_keyboard: [
         [
           {
-            text: "Sotish 〽️",
+            text: "Sell 〽️",
             callback_data: "SELL_SOLANA",
           },
           {
-            text: "Sotib olish ❇️",
+            text: "Buy ❇️",
             callback_data: "BUY_SOLANA",
           },
         ],
         [
           {
-            text: "Tokenlar ✳️",
+            text: "Tokens ✳️",
             callback_data: "TOKENS_SOLANA",
           },
           {
-            text: "Chiqarib olish 📉",
+            text: "Withdraw 📉",
             callback_data: "WITHDRAW_SOLANA",
           },
         ],
         [
           {
-            text: "Sozlamalar ⚙️",
+            text: "Settings ⚙️",
             callback_data: "SETTINGS_SOLANA",
           },
           {
-            text: "Yangilash 🔄",
+            text: "Update 🔄",
             callback_data: "UPDATE_BOT",
           },
         ],
