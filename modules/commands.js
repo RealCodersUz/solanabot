@@ -31,6 +31,10 @@ const commands = {
             text: "Update 🔄",
             callback_data: "UPDATE_BOT",
           },
+          {
+            text: "Help 🆘",
+            callback_data: "HELP",
+          },
         ],
       ],
       //   🅴
