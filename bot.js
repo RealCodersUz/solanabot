@@ -33,7 +33,7 @@ bot.command("start", async (ctx) => {
     console.log(newAccount);
 
     if (newAccount) {
-      const newAccountPublicKeyS = newAccount.publicKey.toBase58();
+      const newAccountPublicKeyS = newAccount.publicKey.toJSON;
       ctx.session.NEWACKOUNTPUBLICKEY = newAccountPublicKeyS;
       console.log(ctx.session.NEWACKOUNTPUBLICKEY, "publicKeySSS");
       console.log(newAccountPublicKeyS.length, "publicKeySSS len");
