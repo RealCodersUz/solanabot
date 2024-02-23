@@ -38,13 +38,13 @@ async function createUser(userId, publicKey, secretKey) {
     }
 
     // 3. Hash secret key before storing (recommended for security):
-    const salt = crypto.randomBytes(16).toString("hex");
+    // const salt = crypto.randomBytes(16).toString("hex");
 
     const newUser = new User({
       userId,
       publicKey,
       secretKey,
-      salt,
+      // salt,
     });
     await newUser.save();
     console.log(`New user created with ID: ${userId}`);
@@ -71,8 +71,8 @@ async function getUser(userId) {
       const newAccount = solanaWeb3.Keypair.generate();
       const newUser = await createUser(
         userId,
-        newAccount.publicKey.toBase58(),
-        newAccount.secretKey.toString("hex")
+        newAccount.publicKey,
+        newAccount.secretKey
       ); // Store secret key securely (encrypt or hash)
       console.log(`New user created with ID: ${userId}`);
       return newUser;
@@ -91,53 +91,49 @@ bot.command("start", async (ctx) => {
     const userId = ctx.update.message.from.id;
     let user = await getUser(userId);
 
-    console.log(newAccount);
-
-    if (newAccount) {
-      const newAccountPublicKeyS = newAccount.publicKey.toJSON;
-      ctx.session.NEWACKOUNTPUBLICKEY = newAccountPublicKeyS;
-      console.log(ctx.session.NEWACKOUNTPUBLICKEY, "publicKeySSS");
-      console.log(newAccountPublicKeyS.length, "publicKeySSS len");
-      // Check if the user already exists
-      if (!user) {
-        // Create a new Solana account and user entry
-        const newAccount = solanaWeb3.Keypair.generate();
-        await createUser(
-          userId,
-          newAccount.publicKey.toString(), // Use toString() directly
-          newAccount.secretKey.toString("hex")
-        ); // Store secret key securely
-        user = await getUser(userId);
-      }
-
-      const secretKey = user.secretKey;
-
-      console.log(secretKey, "secret key");
-      console.log(secretKey.length, "secret key length");
-
-      // Use publicKey directly
-      const newAccount = user.publicKey.toString();
-
-      console.log(newAccount, "New Account");
-
-      // Fetch account balance (replace with actual balance update logic)
-      const accountBalance = await connection.getBalance(user.publicKey);
-
-      const response = `**Welcome to Solana Bot!**\n\nHere's your Solana wallet address linked to your Telegram account:\n\n<b>Solana · </b><a href=${
-        user.publicKey
-      }/${user.publicKey}>🅴</a>\n<code>${
-        user.publicKey
-      }</code> (Tap to copy)\n\nBalance: <code>${accountBalance} SOL</code>\n\nClick on the Refresh button to update your current balance.\n\n${commands.startCommands.join(
-        "\n"
-      )}`;
-
-      ctx.replyWithHTML(response, commands.startCommands);
+    // Check if the user already exists
+    if (!user) {
+      // Create a new Solana account and user entry
+      const newAccount = solanaWeb3.Keypair.generate();
+      await createUser(
+        userId,
+        newAccount.publicKey.toString(),
+        newAccount.secretKey.toString("hex")
+      ); // Store secret key securely
+      user = await getUser(userId);
     }
+
+    const secretKey = user.secretKey;
+
+    console.log(secretKey, "secret key");
+    console.log(secretKey.length, "secret key length");
+
+    // Use publicKey directly
+    const newAccount = user.publicKey;
+
+    console.log(newAccount, "New Account");
+
+    let accountBalance = 0;
+    // Fetch account balance (replace with actual balance update logic)
+    // const accountBalance = await connection.getBalance(
+    //   user.publicKey.toBase58()
+    // );
+
+    // const response = `**Welcome to Solana Bot!**\n\nHere's your Solana wallet address linked to your Telegram account:\n\nSolana · 🅴\n${user.publicKey} (Tap to copy)\n\nBalance: ${accountBalance} SOL\n\nClick on the Refresh button to update your current balance.`;
+
+    const response = `**Welcome to Solana Bot!**\n\nHere's your Solana wallet address linked to your Telegram account:\n\n<b>Solana · </b><a href=${user.publicKey}/${user.publicKey}>🅴</a>\n<code>${user.publicKey}</code> (Tap to copy)\n\nBalance: <code>${accountBalance} SOL</code>\n\nClick on the Refresh button to update your current balance.
+    )}`;
+
+    ctx.reply(response, commands.startCommands, { parse_mode: "HTML" });
+    // (await ctx.reply(response, { parse_mode: "HTML" })).reply_markup(
+    //   commands.startCommands
+    // );
   } catch (error) {
     console.error("Error creating user or fetching balance:", error);
     ctx.reply("An error occurred. Please try again later.");
   }
 });
+
 // actions
 const warningWords = ["/start", "/dev", "/generate", "/help"]; // Taqiqlangan so'zlarning ro'yxati
 
