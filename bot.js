@@ -24,35 +24,32 @@ bot.use(stage.middleware());
 
 async function createUser(userId, publicKey, secretKey) {
   try {
-    // 1. Validate input data:
+    // Validate input data
     if (!userId || !publicKey || !secretKey) {
-      throw new Error(
-        "Missing required user data: userId, publicKey, secretKey"
-      );
+      throw new Error("Missing required user data");
     }
 
-    // 2. Check for existing user before creating:
+    // Check for existing user with unique and valid `tg_id`
     const existingUser = await User.findOne({ userId });
     if (existingUser) {
       throw new Error(`User with ID ${userId} already exists`);
     }
 
-    // 3. Hash secret key before storing (recommended for security):
-    // const salt = crypto.randomBytes(16).toString("hex");
+    // Hash secret key before saving (recommended)
 
     const newUser = new User({
       userId,
       publicKey,
       secretKey,
     });
+
     await newUser.save();
     console.log(`New user created with ID: ${userId}`);
 
-    // 5. Return user information (with sensitive data excluded):
+    // Return safe user information (without sensitive data)
     const safeUser = {
       userId,
       publicKey,
-      secretKey,
     };
     return safeUser;
   } catch (error) {
@@ -70,20 +67,21 @@ async function getUser(userId) {
       const newAccount = solanaWeb3.Keypair.generate();
       const newUser = await createUser(
         userId,
-        newAccount.publicKey,
-        newAccount.secretKey
-      ); // Store secret key securely (encrypt or hash)
+        newAccount.publicKey.toString(),
+        newAccount.secretKey.toString("hex")
+      ); // Store secret key securely (e.g., encrypt or hash)
       console.log(`New user created with ID: ${userId}`);
       return newUser;
     }
 
-    return user.toObject(); // Convert Mongoose document to POJO
+    return user.toObject(); // Convert Mongoose document to POJO (omitting sensitive data)
   } catch (error) {
     console.error("Error fetching user:", error);
     throw error; // Re-throw for proper error handling
   }
 }
 
+// bcrypt
 async function getSolanaAccountBalance(connection, publicKey) {
   try {
     const balance = await connection.getBalance(
@@ -93,8 +91,7 @@ async function getSolanaAccountBalance(connection, publicKey) {
     return balance;
   } catch (error) {
     console.error("Error fetching Solana account balance:", error);
-
-    throw error;
+    throw error; // Re-throw for proper error handling
   }
 }
 
@@ -119,8 +116,8 @@ bot.command("start", async (ctx) => {
 
     const secretKey = user.secretKey;
 
-    console.log(secretKey, "secret key");
-    console.log(secretKey.length, "secret key length");
+    // console.log(secretKey, "secret key");
+    // console.log(secretKey.length, "secret key length");
 
     const newAccount = new solanaWeb3.PublicKey(user.publicKey);
 
