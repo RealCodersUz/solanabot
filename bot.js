@@ -2,17 +2,17 @@ const { Telegraf, Markup, session, Scenes } = require("telegraf");
 const solanaWeb3 = require("@solana/web3.js");
 const db = require("./modules/db");
 const crypto = require("crypto");
-const commands = require("./modules/commands");
+const { startCommands } = require("./modules/commands");
 const registerScene = require("./modules/scenes/register");
 const User = require("./modules/models/User");
-const { default: mongoose } = require("mongoose");
+const { Connection } = require("mongoose");
 
 require("dotenv/config");
 
 // Solana configuration (replace with your actual values)
 const solanaEndpoint = "https://api.mainnet-beta.solana.com";
 const connection = new solanaWeb3.Connection(solanaEndpoint);
-const solanaTokenLink = "https://solscan.io/account";
+const solanaTokenLink = "https://solscan.io/account/";
 
 // Telegram bot setup
 const stage = new Scenes.Stage([registerScene]);
@@ -38,13 +38,12 @@ async function createUser(userId, publicKey, secretKey) {
     }
 
     // 3. Hash secret key before storing (recommended for security):
-    const salt = crypto.randomBytes(16).toString("hex");
+    // const salt = crypto.randomBytes(16).toString("hex");
 
     const newUser = new User({
       userId,
       publicKey,
       secretKey,
-      salt,
     });
     await newUser.save();
     console.log(`New user created with ID: ${userId}`);
@@ -52,8 +51,8 @@ async function createUser(userId, publicKey, secretKey) {
     // 5. Return user information (with sensitive data excluded):
     const safeUser = {
       userId,
-      publicKey, // Include for convenience, but avoid displaying publicly
-      // Omit hashedSecretKey and salt
+      publicKey,
+      secretKey,
     };
     return safeUser;
   } catch (error) {
@@ -71,8 +70,8 @@ async function getUser(userId) {
       const newAccount = solanaWeb3.Keypair.generate();
       const newUser = await createUser(
         userId,
-        newAccount.publicKey.toBase58(),
-        newAccount.secretKey.toString("hex")
+        newAccount.publicKey,
+        newAccount.secretKey
       ); // Store secret key securely (encrypt or hash)
       console.log(`New user created with ID: ${userId}`);
       return newUser;
@@ -84,6 +83,21 @@ async function getUser(userId) {
     throw error; // Re-throw for proper error handling
   }
 }
+
+async function getSolanaAccountBalance(connection, publicKey) {
+  try {
+    const balance = await connection.getBalance(
+      new solanaWeb3.PublicKey(publicKey)
+    );
+    console.log("Solana Account Balance:", balance);
+    return balance;
+  } catch (error) {
+    console.error("Error fetching Solana account balance:", error);
+
+    throw error;
+  }
+}
+
 // Start command
 bot.command("start", async (ctx) => {
   try {
@@ -97,7 +111,7 @@ bot.command("start", async (ctx) => {
       const newAccount = solanaWeb3.Keypair.generate();
       await createUser(
         userId,
-        newAccount.publicKey.toString(), // Use toString() directly
+        newAccount.publicKey.toString(),
         newAccount.secretKey.toString("hex")
       ); // Store secret key securely
       user = await getUser(userId);
@@ -108,23 +122,42 @@ bot.command("start", async (ctx) => {
     console.log(secretKey, "secret key");
     console.log(secretKey.length, "secret key length");
 
-    // Use publicKey directly
-    const newAccount = user.publicKey.toString();
+    const newAccount = new solanaWeb3.PublicKey(user.publicKey);
 
-    console.log(newAccount, "New Account");
+    const balance = await getSolanaAccountBalance(connection, user.publicKey);
+    console.log("Solana Account Balance:", balance);
 
-    // Fetch account balance (replace with actual balance update logic)
-    const accountBalance = await connection.getBalance(user.publicKey);
+    // Update accountBalance with the retrieved balance
+    let accountBalance = balance;
 
-    const response = `**Welcome to Solana Bot!**\n\nHere's your Solana wallet address linked to your Telegram account:\n\n<b>Solana · </b><a href=${
-      user.publicKey
-    }/${user.publicKey}>🅴</a>\n<code>${
-      user.publicKey
-    }</code> (Tap to copy)\n\nBalance: <code>${accountBalance} SOL</code>\n\nClick on the Refresh button to update your current balance.\n\n${commands.startCommands.join(
-      "\n"
-    )}`;
+    ctx.replyWithMarkdown(
+      `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${accountBalance} SOL\`\n\nClick on the Refresh button to update your current balance.
+   `,
+      {
+        disable_web_page_preview: true,
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "Sell 〽️", callback_data: "SELL_SOLANA" },
+              { text: "Buy ❇️", callback_data: "BUY_SOLANA" },
+            ],
+            [
+              { text: "Tokens ✳️", callback_data: "TOKENS_SOLANA" },
+              { text: "Withdraw ", callback_data: "WITHDRAW_SOLANA" },
+            ],
+            [
+              { text: "Settings ⚙️", callback_data: "SETTINGS_SOLANA" },
+              { text: "Help 🆘", callback_data: "HELP" },
+              { text: "Update ", callback_data: "UPDATE_BOT" },
+            ],
+          ],
+        },
+      }
+    );
 
-    ctx.replyWithHTML(response, commands.startCommands);
+    // let startMessage = `**Welcome to Solana Bot!**\n\nHere's your Solana wallet address linked to your Telegram account:\n\n<b>Solana · </b> <a href=${solanaTokenLink}/${user.publicKey}>🅴</a>\n<code>${user.publicKey}</code> (Tap to copy)\n\nBalance: <code>${accountBalance} SOL</code>\n\nClick on the Refresh button to update your current balance.`;
+
+    // ctx.reply(startMessage, startCommands);
   } catch (error) {
     console.error("Error creating user or fetching balance:", error);
     ctx.reply("An error occurred. Please try again later.");

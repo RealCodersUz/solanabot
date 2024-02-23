@@ -28,20 +28,19 @@ const commands = {
             callback_data: "SETTINGS_SOLANA",
           },
           {
-            text: "Update 🔄",
-            callback_data: "UPDATE_BOT",
-          },
-          {
             text: "Help 🆘",
             callback_data: "HELP",
           },
+          {
+            text: "Update 🔄",
+            callback_data: "UPDATE_BOT",
+          },
         ],
       ],
-      //   🅴
-      //   resize_keyboard: true,
-      //   one_time_keyboard: true,
     },
   },
 };
+
+//   🅴
 
 module.exports = commands;
