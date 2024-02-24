@@ -2,7 +2,7 @@ const { Telegraf, Markup, session, Scenes } = require("telegraf");
 const solanaWeb3 = require("@solana/web3.js");
 const db = require("./modules/db");
 const crypto = require("crypto");
-const { startCommands } = require("./modules/commands");
+const { startCommands, backMainCommands } = require("./modules/commands");
 const registerScene = require("./modules/scenes/register");
 const User = require("./modules/models/User");
 const { Connection } = require("mongoose");
@@ -172,8 +172,32 @@ bot.action("UPDATE_BOT", async (ctx) => {
   );
 });
 
-bot.action("HELP", (ctx) => {
-  ctx.reply("HELP");
+bot.action("HELP", async (ctx) => {
+  await ctx.deleteMessage();
+  ctx.reply("HELP", backMainCommands);
+});
+
+bot.action("BACK_MAIN_MENU", async (ctx) => {
+  // foydalanuvchi identifikatorini olish
+  await ctx.deleteMessage();
+
+  const userId = ctx.from.id;
+
+  // foydalanuvchini olish
+  let user = await getUser(userId);
+
+  // Solana hisob hisobini olish
+  let balance = await getSolanaAccountBalance(connection, user.publicKey);
+  let accountBalance = balance;
+
+  // Habarni yuborish
+  ctx.replyWithMarkdown(
+    `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${accountBalance} SOL\`\n\nClick on the Refresh button to update your current balance.`,
+    {
+      disable_web_page_preview: true,
+      ...startCommands,
+    }
+  );
 });
 
 // bot.on("video", (ctx) => {
