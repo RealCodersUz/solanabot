@@ -62,19 +62,19 @@ async function getUser(userId) {
   try {
     const user = await User.findOne({ userId });
 
-    if (!user) {
-      // Create a new Solana account and user entry
-      const newAccount = solanaWeb3.Keypair.generate();
-      const newUser = await createUser(
-        userId,
-        newAccount.publicKey.toString(),
-        newAccount.secretKey.toString("hex")
-      ); // Store secret key securely (e.g., encrypt or hash)
-      console.log(`New user created with ID: ${userId}`);
-      return newUser;
-    }
+    // if (!user) {
+    //   // Create a new Solana account and user entry
+    //   const newAccount = solanaWeb3.Keypair.generate();
+    //   const newUser = await createUser(
+    //     userId,
+    //     newAccount.publicKey.toString(),
+    //     newAccount.secretKey.toString("hex")
+    //   ); // Store secret key securely (e.g., encrypt or hash)
+    //   console.log(`New user created with ID: ${userId}`);
+    //   return newUser;
+    // }
 
-    return user.toObject(); // Convert Mongoose document to POJO (omitting sensitive data)
+    return user;
   } catch (error) {
     console.error("Error fetching user:", error);
     throw error; // Re-throw for proper error handling
@@ -112,29 +112,33 @@ bot.command("start", async (ctx) => {
         newAccount.secretKey.toString("hex")
       ); // Store secret key securely
       user = await getUser(userId);
+
+      let balance = await getSolanaAccountBalance(connection, user.publicKey);
+      console.log("Solana Account Balance:", balance);
+
+      ctx.sendVideo(
+        "BAACAgQAAxkBAAICtmXaDFoULe1S9hsxTC7eR2fID5gCAAIzBQAC_T5lUDFAgyX-fIqqNAQ",
+        {
+          caption: `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${balance} SOL\`\n\nClick on the Refresh button to update your current balance.
+        `,
+          parse_mode: "Markdown",
+          disable_web_page_preview: true,
+          ...startCommands,
+        }
+      );
+    } else {
+      let balance = await getSolanaAccountBalance(connection, user.publicKey);
+      let accountBalance = balance;
+
+      ctx.replyWithMarkdown(
+        `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${accountBalance} SOL\`\n\nClick on the Refresh button to update your current balance.
+     `,
+        {
+          disable_web_page_preview: true,
+          ...startCommands,
+        }
+      );
     }
-
-    const secretKey = user.secretKey;
-
-    // console.log(secretKey, "secret key");
-    // console.log(secretKey.length, "secret key length");
-
-    const newAccount = new solanaWeb3.PublicKey(user.publicKey);
-
-    const balance = await getSolanaAccountBalance(connection, user.publicKey);
-    console.log("Solana Account Balance:", balance);
-
-    // Update accountBalance with the retrieved balance
-    let accountBalance = balance;
-
-    ctx.replyWithMarkdown(
-      `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${accountBalance} SOL\`\n\nClick on the Refresh button to update your current balance.
-   `,
-      {
-        disable_web_page_preview: true,
-        ...startCommands,
-      }
-    );
 
     // let startMessage = `**Welcome to Solana Bot!**\n\nHere's your Solana wallet address linked to your Telegram account:\n\n<b>Solana · </b> <a href=${solanaTokenLink}/${user.publicKey}>🅴</a>\n<code>${user.publicKey}</code> (Tap to copy)\n\nBalance: <code>${accountBalance} SOL</code>\n\nClick on the Refresh button to update your current balance.`;
 
@@ -144,6 +148,38 @@ bot.command("start", async (ctx) => {
     ctx.reply("An error occurred. Please try again later.");
   }
 });
+
+bot.action("UPDATE_BOT", async (ctx) => {
+  // foydalanuvchi identifikatorini olish
+  await ctx.deleteMessage();
+
+  const userId = ctx.from.id;
+
+  // foydalanuvchini olish
+  let user = await getUser(userId);
+
+  // Solana hisob hisobini olish
+  let balance = await getSolanaAccountBalance(connection, user.publicKey);
+  let accountBalance = balance;
+
+  // Habarni yuborish
+  ctx.replyWithMarkdown(
+    `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${accountBalance} SOL\`\n\nClick on the Refresh button to update your current balance.`,
+    {
+      disable_web_page_preview: true,
+      ...startCommands,
+    }
+  );
+});
+
+bot.action("HELP", (ctx) => {
+  ctx.reply("HELP");
+});
+
+// bot.on("video", (ctx) => {
+//   console.log(ctx.update.message.video.file_id);
+//   ctx.reply(ctx.update.message.video.file_id);
+// });
 
 // actions
 const warningWords = ["/start", "/dev", "/generate", "/help"]; // Taqiqlangan so'zlarning ro'yxati
