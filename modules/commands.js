@@ -39,7 +39,38 @@ const commands = {
       ],
     },
   },
-
+  settingCommands: {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "Buy Settings",
+            callback_data: "SELL_SETTINGS",
+          },
+          {
+            text: "Sell Settings",
+            callback_data: "BUY_SETTINGS",
+          },
+        ],
+        [
+          {
+            text: "🔴 Auto Buy",
+            callback_data: "AUTO_BUY",
+          },
+          {
+            text: "🔴 Auto Sell",
+            callback_data: "AUTO_SELL",
+          },
+        ],
+        [
+          {
+            text: "Wallets",
+            callback_data: "WALLETS",
+          },
+        ],
+      ],
+    },
+  },
 
   backMainCommands: {
     reply_markup: {
