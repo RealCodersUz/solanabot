@@ -39,8 +39,21 @@ const commands = {
       ],
     },
   },
+
+
+  backMainCommands: {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "⟵",
+            callback_data: "BACK_MAIN_MENU",
+          },
+        ],
+      ],
+    },
+  },
 };
 
 //   🅴
-
 module.exports = commands;
