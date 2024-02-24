@@ -6,6 +6,8 @@ const { startCommands, backMainCommands } = require("./modules/commands");
 const registerScene = require("./modules/scenes/register");
 const User = require("./modules/models/User");
 const { Connection } = require("mongoose");
+const { solToUsd } = require("./modules/functions");
+const Currency = require("./modules/scenes/currency");
 
 require("dotenv/config");
 
@@ -15,7 +17,7 @@ const connection = new solanaWeb3.Connection(solanaEndpoint);
 const solanaTokenLink = "https://solscan.io/account/";
 
 // Telegram bot setup
-const stage = new Scenes.Stage([registerScene]);
+const stage = new Scenes.Stage([registerScene, Currency]);
 const bot = new Telegraf(process.env.BOT_TOKEN);
 db();
 
@@ -205,6 +207,11 @@ bot.action("BACK_MAIN_MENU", async (ctx) => {
 //   ctx.reply(ctx.update.message.video.file_id);
 // });
 
+bot.command("currency", (ctx) => {
+  // ctx.reply("enter the amaunt");
+  solToUsd(1);
+  // ctx.scene.enter("CURRENCY");
+});
 // actions
 const warningWords = ["/start", "/dev", "/generate", "/help"]; // Taqiqlangan so'zlarning ro'yxati
 
@@ -221,6 +228,7 @@ bot.on("text", (ctx) => {
 
 // Error handling and logging
 bot.on("error", (error) => console.error("Error:", error));
+// const stage = new Scenes.Stage([wizardScene, getSMSCodScene, getAll]);
 
 // Bot launch
 bot.launch();
