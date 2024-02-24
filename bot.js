@@ -2,17 +2,17 @@ const { Telegraf, Markup, session, Scenes } = require("telegraf");
 const solanaWeb3 = require("@solana/web3.js");
 const db = require("./modules/db");
 const crypto = require("crypto");
-const commands = require("./modules/commands");
+const { startCommands } = require("./modules/commands");
 const registerScene = require("./modules/scenes/register");
 const User = require("./modules/models/User");
-const { default: mongoose } = require("mongoose");
+const { Connection } = require("mongoose");
 
 require("dotenv/config");
 
 // Solana configuration (replace with your actual values)
 const solanaEndpoint = "https://api.mainnet-beta.solana.com";
 const connection = new solanaWeb3.Connection(solanaEndpoint);
-const solanaTokenLink = "https://solscan.io/account";
+const solanaTokenLink = "https://solscan.io/account/";
 
 // Telegram bot setup
 const stage = new Scenes.Stage([registerScene]);
@@ -24,36 +24,32 @@ bot.use(stage.middleware());
 
 async function createUser(userId, publicKey, secretKey) {
   try {
-    // 1. Validate input data:
+    // Validate input data
     if (!userId || !publicKey || !secretKey) {
-      throw new Error(
-        "Missing required user data: userId, publicKey, secretKey"
-      );
+      throw new Error("Missing required user data");
     }
 
-    // 2. Check for existing user before creating:
+    // Check for existing user with unique and valid `tg_id`
     const existingUser = await User.findOne({ userId });
     if (existingUser) {
       throw new Error(`User with ID ${userId} already exists`);
     }
 
-    // 3. Hash secret key before storing (recommended for security):
-    // const salt = crypto.randomBytes(16).toString("hex");
+    // Hash secret key before saving (recommended)
 
     const newUser = new User({
       userId,
       publicKey,
       secretKey,
-      // salt,
     });
+
     await newUser.save();
     console.log(`New user created with ID: ${userId}`);
 
-    // 5. Return user information (with sensitive data excluded):
+    // Return safe user information (without sensitive data)
     const safeUser = {
       userId,
-      publicKey, // Include for convenience, but avoid displaying publicly
-      // Omit hashedSecretKey and salt
+      publicKey,
     };
     return safeUser;
   } catch (error) {
@@ -71,19 +67,34 @@ async function getUser(userId) {
       const newAccount = solanaWeb3.Keypair.generate();
       const newUser = await createUser(
         userId,
-        newAccount.publicKey,
-        newAccount.secretKey
-      ); // Store secret key securely (encrypt or hash)
+        newAccount.publicKey.toString(),
+        newAccount.secretKey.toString("hex")
+      ); // Store secret key securely (e.g., encrypt or hash)
       console.log(`New user created with ID: ${userId}`);
       return newUser;
     }
 
-    return user.toObject(); // Convert Mongoose document to POJO
+    return user.toObject(); // Convert Mongoose document to POJO (omitting sensitive data)
   } catch (error) {
     console.error("Error fetching user:", error);
     throw error; // Re-throw for proper error handling
   }
 }
+
+// bcrypt
+async function getSolanaAccountBalance(connection, publicKey) {
+  try {
+    const balance = await connection.getBalance(
+      new solanaWeb3.PublicKey(publicKey)
+    );
+    console.log("Solana Account Balance:", balance);
+    return balance;
+  } catch (error) {
+    console.error("Error fetching Solana account balance:", error);
+    throw error; // Re-throw for proper error handling
+  }
+}
+
 // Start command
 bot.command("start", async (ctx) => {
   try {
@@ -105,29 +116,29 @@ bot.command("start", async (ctx) => {
 
     const secretKey = user.secretKey;
 
-    console.log(secretKey, "secret key");
-    console.log(secretKey.length, "secret key length");
+    // console.log(secretKey, "secret key");
+    // console.log(secretKey.length, "secret key length");
 
-    // Use publicKey directly
-    const newAccount = user.publicKey;
+    const newAccount = new solanaWeb3.PublicKey(user.publicKey);
 
-    console.log(newAccount, "New Account");
+    const balance = await getSolanaAccountBalance(connection, user.publicKey);
+    console.log("Solana Account Balance:", balance);
 
-    let accountBalance = 0;
-    // Fetch account balance (replace with actual balance update logic)
-    // const accountBalance = await connection.getBalance(
-    //   user.publicKey.toBase58()
-    // );
+    // Update accountBalance with the retrieved balance
+    let accountBalance = balance;
 
-    // const response = `**Welcome to Solana Bot!**\n\nHere's your Solana wallet address linked to your Telegram account:\n\nSolana · 🅴\n${user.publicKey} (Tap to copy)\n\nBalance: ${accountBalance} SOL\n\nClick on the Refresh button to update your current balance.`;
+    ctx.replyWithMarkdown(
+      `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${accountBalance} SOL\`\n\nClick on the Refresh button to update your current balance.
+   `,
+      {
+        disable_web_page_preview: true,
+        ...startCommands,
+      }
+    );
 
-    const response = `**Welcome to Solana Bot!**\n\nHere's your Solana wallet address linked to your Telegram account:\n\n<b>Solana · </b><a href=${user.publicKey}/${user.publicKey}>🅴</a>\n<code>${user.publicKey}</code> (Tap to copy)\n\nBalance: <code>${accountBalance} SOL</code>\n\nClick on the Refresh button to update your current balance.
-    )}`;
+    // let startMessage = `**Welcome to Solana Bot!**\n\nHere's your Solana wallet address linked to your Telegram account:\n\n<b>Solana · </b> <a href=${solanaTokenLink}/${user.publicKey}>🅴</a>\n<code>${user.publicKey}</code> (Tap to copy)\n\nBalance: <code>${accountBalance} SOL</code>\n\nClick on the Refresh button to update your current balance.`;
 
-    ctx.reply(response, commands.startCommands, { parse_mode: "HTML" });
-    // (await ctx.reply(response, { parse_mode: "HTML" })).reply_markup(
-    //   commands.startCommands
-    // );
+    // ctx.reply(startMessage, startCommands);
   } catch (error) {
     console.error("Error creating user or fetching balance:", error);
     ctx.reply("An error occurred. Please try again later.");
