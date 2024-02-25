@@ -6,7 +6,7 @@ const { startCommands, backMainCommands } = require("./modules/commands");
 const registerScene = require("./modules/scenes/register");
 const User = require("./modules/models/User");
 const { Connection } = require("mongoose");
-const { solToUsd } = require("./modules/functions");
+const { solToUsd, getPairs } = require("./modules/functions");
 const Currency = require("./modules/scenes/currency");
 
 require("dotenv/config");
@@ -174,9 +174,17 @@ bot.action("UPDATE_BOT", async (ctx) => {
   );
 });
 
+// ctx.reply();
 bot.action("HELP", async (ctx) => {
   await ctx.deleteMessage();
-  ctx.reply("HELP", backMainCommands);
+  ctx.reply(
+    `Unibot on Solana is developed and overseen by Unibot Labs, a new and independent team of Solana developers. We operate autonomously from the core Unibot team, handling all aspects of Unibot on Solana.
+    Lead Team: @AliiKamoliddinov
+  
+  Additional questions or need support?
+  Join our Telegram group @unibotuz_group and one of our admins can assist you.`,
+    backMainCommands
+  );
 });
 
 bot.action("BACK_MAIN_MENU", async (ctx) => {
@@ -210,6 +218,11 @@ bot.action("BACK_MAIN_MENU", async (ctx) => {
 bot.command("currency", (ctx) => {
   // ctx.reply("enter the amaunt");
   solToUsd(1);
+  // ctx.scene.enter("CURRENCY");
+});
+bot.command("pairs", (ctx) => {
+  // ctx.reply("enter the amaunt");
+  getPairs();
   // ctx.scene.enter("CURRENCY");
 });
 // actions

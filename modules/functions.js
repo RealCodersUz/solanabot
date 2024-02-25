@@ -15,6 +15,11 @@ let solToUsd = async (count) => {
     return null;
   }
 };
+async function getPairs() {
+  const url = "https://api.dexscreener.com/api/pairs/solana";
+  const response = await axios.get(url);
+  console.log(response.data);
+}
 // () => {
 //   fetch("https://api.coingecko.com/api/v3/simple/price?ids=&vs_currencies=usd")
 //     .then((response) => {
@@ -30,7 +35,7 @@ let solToUsd = async (count) => {
 //       //   ).innerHTML = `1 SOL  = $${priceInUsd}`;
 //     });
 //};
-module.exports = { solToUsd };
+module.exports = { solToUsd, getPairs };
 // Call the function initially to display the price when the page loads
 // solToUsd();
 
