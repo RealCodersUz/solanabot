@@ -15,6 +15,8 @@ require("dotenv/config");
 const solanaEndpoint = "https://api.mainnet-beta.solana.com";
 const connection = new solanaWeb3.Connection(solanaEndpoint);
 const solanaTokenLink = "https://solscan.io/account/";
+let startVideoID =
+  "BAACAgQAAxkBAAICtmXaDFoULe1S9hsxTC7eR2fID5gCAAIzBQAC_T5lUDFAgyX-fIqqNAQ";
 
 // Telegram bot setup
 const stage = new Scenes.Stage([registerScene, Currency]);
@@ -120,16 +122,13 @@ bot.command("start", async (ctx) => {
 
       console.log("Solana Account Balance:", balance);
 
-      ctx.sendVideo(
-        "BAACAgQAAxkBAAICtmXaDFoULe1S9hsxTC7eR2fID5gCAAIzBQAC_T5lUDFAgyX-fIqqNAQ",
-        {
-          caption: `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${balance} SOL ${SolanaUsdBalance}$ \`\n\nClick on the Refresh button to update your current balance.
+      ctx.sendVideo(startVideoID, {
+        caption: `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${balance} SOL ${SolanaUsdBalance}$ \`\n\nClick on the Refresh button to update your current balance.
         `,
-          parse_mode: "Markdown",
-          disable_web_page_preview: true,
-          ...startCommands,
-        }
-      );
+        parse_mode: "Markdown",
+        disable_web_page_preview: true,
+        ...startCommands,
+      });
     } else {
       let balance = await getSolanaAccountBalance(connection, user.publicKey);
       let accountBalance = balance;
@@ -210,17 +209,17 @@ bot.action("BACK_MAIN_MENU", async (ctx) => {
   );
 });
 
-// bot.on("video", (ctx) => {
-//   console.log(ctx.update.message.video.file_id);
-//   ctx.reply(ctx.update.message.video.file_id);
-// });
+bot.on("video", (ctx) => {
+  console.log(ctx.update.message.video.file_id);
+  ctx.reply(ctx.update.message.video.file_id);
+});
 
 bot.command("currency", (ctx) => {
   // ctx.reply("enter the amaunt");
   solToUsd(1);
   // ctx.scene.enter("CURRENCY");
 });
-bot.command("pairs", (ctx) => {
+bot.action("NEW_PAIRS", (ctx) => {
   // ctx.reply("enter the amaunt");
   getPairs();
   // ctx.scene.enter("CURRENCY");

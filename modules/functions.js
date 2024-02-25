@@ -20,6 +20,7 @@ async function getPairs() {
   const response = await axios.get(url);
   console.log(response.data);
 }
+
 // () => {
 //   fetch("https://api.coingecko.com/api/v3/simple/price?ids=&vs_currencies=usd")
 //     .then((response) => {
@@ -35,6 +36,7 @@ async function getPairs() {
 //       //   ).innerHTML = `1 SOL  = $${priceInUsd}`;
 //     });
 //};
+
 module.exports = { solToUsd, getPairs };
 // Call the function initially to display the price when the page loads
 // solToUsd();
