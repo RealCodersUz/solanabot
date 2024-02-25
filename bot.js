@@ -13,6 +13,8 @@ const { default: axios } = require("axios");
 require("dotenv/config");
 
 // Solana configuration (replace with your actual values)
+let BOT_USERNAME = process.env.BOT_USERNAME;
+let BOT_TOKEN = process.env.BOT_TOKEN;
 const solanaEndpoint = "https://api.mainnet-beta.solana.com";
 const connection = new solanaWeb3.Connection(solanaEndpoint);
 const solanaTokenLink = "https://solscan.io/account/";
@@ -24,7 +26,7 @@ const DEXSCREENER_API_BASE_URL =
 
 // Telegram bot setup
 const stage = new Scenes.Stage([registerScene, Currency]);
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf(BOT_TOKEN);
 db();
 
 bot.use(session());
@@ -218,59 +220,47 @@ bot.action("NEW_PAIRS", async (ctx) => {
   let lastTimestamp = Date.now(); // Hozirgi vaqt bilan lastTimestamp ni boshlaymiz
 
   try {
-    const RANK_BY = "trendingScoreH6"; // "Yangi" juftliklarni aniqlash uchun `created` yoki `lastUpdated` ni ishlatish maqbul bo'lishi mumkin
-    const ORDER = "desc";
-    const MIN_LIQ = 1;
-
-    // Vaqt filteri bilan URL (sizning "yangi" ta'rifingizga moslashtirib olingan)
     const url = `${DEXSCREENER_API_BASE_URL}`;
 
     const response = await axios.get(url);
     const pairs = response.data;
     // console.log(pairs, "PAIRS");
 
-    let message = `New DexScreener Data (Solana, New Pairs):\n`;
+    let message = `New Pairs\n\n`;
 
     // Extract and process "new" pairs
     const newPairs = pairs.pairs.filter((pair) => pair.pairCreatedAt > 0);
 
-    // chainId, dexId,url,pairAddress,baseToken,quoteToken,priceNative,priceUsd,txns,volume,priceChange,liquidity,fdv,pairCreatedAt,info
-
-    console.log(newPairs[0].chainId, " | chainId");
-    console.log(newPairs[0].dexId, " | dexId");
-    console.log(newPairs[0].url, " | url");
-    console.log(newPairs[0].pairAddress, " | pairAddress");
-    console.log(newPairs[0].baseToken, " | baseToken");
-    console.log(newPairs[0].quoteToken, " | quoteToken");
-    console.log(newPairs[0].priceNative, " | priceNative");
-    console.log(newPairs[0].priceUsd, " | priceUsd");
-    console.log(newPairs[0].txns, " | txns");
-    console.log(newPairs[0].volume, " | volume");
-    console.log(newPairs[0].priceChange, " | priceChange");
-    console.log(newPairs[0].liquidity, " | liquidity");
-    console.log(newPairs[0].fdv, " | fdv");
-    console.log(newPairs[0].pairCreatedAt, " | pairCreatedAt");
-    console.log(newPairs[0].info, " | info");
-
     if (newPairs) {
-      for (const pair of newPairs) {
-        // Customize data extraction and presentation as needed
-        const formattedData = `* **Pair:** ${pair.name} (${pair.baseSymbol}/${pair.quoteSymbol})\n`;
-        const additionalData = pair.additionalData || {}; // Handle potential lack of "additionalData"
+      for (let i = 0; i < 1; i++) {
+        // for (let i = 0; i < newPairs.length; i++) {
+        let pair = newPairs[i];
+        const formattedData = `\*${pair.baseToken.name || ""} *\ 🔁  ${
+          pair.quoteToken.name || ""
+        }\n`;
+        // pair = (await pair) || {};
 
         message +=
           formattedData +
-          `* URL: ${additionalData.url || ""}\n` +
-          `* Pair Address: ${additionalData.pairAddress || ""}\n` +
-          `* Price Native: ${additionalData.priceNative || ""}\n` +
-          `* Price Usd : ${additionalData.priceUsd || ""}\n` +
-          `* Pair created at : ${pair.pairCreatedAt || ""}\n`;
+          `URL: [Link](${pair.url})\ \n` +
+          `Pair Address: \`${pair.pairAddress || "❌"}\` \n` +
+          `Price Native: \*${pair.priceNative || "❌"} ${
+            pair.baseToken.symbol
+          }\* \n` +
+          `Price Usd : \*${pair.priceUsd || "❌"} $ *\ \n` +
+          `Pair created at : \*${pair.pairCreatedAt || "❌"}\* \n` +
+          `([Quick buy](https://t.me/${BOT_USERNAME})) \ \n` +
+          `\n`;
 
         // Update `lastTimestamp` for future checks
         lastTimestamp = Math.max(lastTimestamp, pair.pairCreatedAt);
       }
 
-      ctx.reply(message);
+      ctx.reply(
+        message,
+        //
+        { disable_web_page_preview: true, parse_mode: "Markdown" }
+      );
     } else {
       // Agar ma'lumot topilmasa bildiramiz
       ctx.reply("Yangi juftliklar topilmadi.");
