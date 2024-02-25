@@ -116,12 +116,14 @@ bot.command("start", async (ctx) => {
       user = await getUser(userId);
 
       let balance = await getSolanaAccountBalance(connection, user.publicKey);
+      let SolanaUsdBalance = await solToUsd(balance);
+
       console.log("Solana Account Balance:", balance);
 
       ctx.sendVideo(
         "BAACAgQAAxkBAAICtmXaDFoULe1S9hsxTC7eR2fID5gCAAIzBQAC_T5lUDFAgyX-fIqqNAQ",
         {
-          caption: `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${balance} SOL\`\n\nClick on the Refresh button to update your current balance.
+          caption: `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${balance} SOL ${SolanaUsdBalance}$ \`\n\nClick on the Refresh button to update your current balance.
         `,
           parse_mode: "Markdown",
           disable_web_page_preview: true,
@@ -131,9 +133,10 @@ bot.command("start", async (ctx) => {
     } else {
       let balance = await getSolanaAccountBalance(connection, user.publicKey);
       let accountBalance = balance;
+      let SolanaUsdBalance = await solToUsd(balance);
 
       ctx.replyWithMarkdown(
-        `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${accountBalance} SOL\`\n\nClick on the Refresh button to update your current balance.
+        `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${accountBalance} SOL ${SolanaUsdBalance}$ \`\n\nClick on the Refresh button to update your current balance.
      `,
         {
           disable_web_page_preview: true,
@@ -163,10 +166,11 @@ bot.action("UPDATE_BOT", async (ctx) => {
   // Solana hisob hisobini olish
   let balance = await getSolanaAccountBalance(connection, user.publicKey);
   let accountBalance = balance;
+  let SolanaUsdBalance = await solToUsd(accountBalance);
 
   // Habarni yuborish
   ctx.replyWithMarkdown(
-    `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${accountBalance} SOL\`\n\nClick on the Refresh button to update your current balance.`,
+    `\*Welcome to Solana Bot!\*\n\nIntroducing a cutting-edge bot crafted exclusively for Solana Traders. Trade any token instantly right after launch.\n\nHere's your Solana wallet address linked to your Telegram account.\nSimply fund your wallet and dive into trading.\n\n\*Solana ·\* [🅴](${solanaTokenLink}${user.publicKey}) \n\`${user.publicKey}\` (Tap to copy)\nBalance: \`${accountBalance} SOL ${SolanaUsdBalance}$ \`\n\nClick on the Refresh button to update your current balance.`,
     {
       disable_web_page_preview: true,
       ...startCommands,
@@ -178,11 +182,7 @@ bot.action("UPDATE_BOT", async (ctx) => {
 bot.action("HELP", async (ctx) => {
   await ctx.deleteMessage();
   ctx.reply(
-    `Unibot on Solana is developed and overseen by Unibot Labs, a new and independent team of Solana developers. We operate autonomously from the core Unibot team, handling all aspects of Unibot on Solana.
-    Lead Team: @AliiKamoliddinov
-  
-  Additional questions or need support?
-  Join our Telegram group @unibotuz_group and one of our admins can assist you.`,
+    `Unibot on Solana is developed and overseen by Unibot Labs, a new and independent team of Solana developers. We operate autonomously from the core Unibot team, handling all aspects of Unibot on Solana.\nLead Team: @AliiKamoliddinov\n\nAdditional questions or need support?\nJoin our Telegram group @unibotuz_group and one of our admins can assist you.`,
     backMainCommands
   );
 });
