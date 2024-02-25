@@ -16,7 +16,7 @@ let solToUsd = async (count) => {
   }
 };
 async function getPairs() {
-  const url = "https://api.dexscreener.com/api/pairs/solana";
+  const url = "https://api.dexscreener.com/latest/dex/search/?q=solana";
   const response = await axios.get(url);
   console.log(response.data);
 }

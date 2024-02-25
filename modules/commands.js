@@ -14,8 +14,8 @@ const commands = {
         ],
         [
           {
-            text: "Tokens ✳️",
-            callback_data: "TOKENS_SOLANA",
+            text: "New pairs ✳️",
+            callback_data: "NEW_PAIRS",
           },
           {
             text: "Withdraw 📉",
