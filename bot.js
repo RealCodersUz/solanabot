@@ -2,7 +2,11 @@ const { Telegraf, Markup, session, Scenes } = require("telegraf");
 const solanaWeb3 = require("@solana/web3.js");
 const db = require("./modules/db");
 const crypto = require("crypto");
-const { startCommands, backMainCommands } = require("./modules/commands");
+const {
+  startCommands,
+  backMainCommands,
+  settingCommands,
+} = require("./modules/commands");
 const registerScene = require("./modules/scenes/register");
 const User = require("./modules/models/User");
 const { Connection } = require("mongoose");
@@ -271,6 +275,11 @@ bot.action("NEW_PAIRS", async (ctx) => {
       "Ma'lumotni olishda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
     );
   }
+});
+
+bot.action("SETTINGS_SOLANA", async (ctx) => {
+  await ctx.deleteMessage();
+  ctx.reply("SETTINGS", settingCommands);
 });
 
 bot.on("video", (ctx) => {
