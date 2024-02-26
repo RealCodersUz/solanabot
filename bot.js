@@ -254,6 +254,7 @@ bot.action("NEW_PAIRS", async (ctx) => {
           `Price Usd : \*${pair.priceUsd || "❌"} $ *\ \n` +
           `Pair created at : \*${pair.pairCreatedAt || "❌"}\* \n` +
           `([Quick buy](https://t.me/${BOT_USERNAME})) \ \n` +
+          // `([Quick buy](https://dexscreener.com/bsc/${pair.pairAddress})) \ \n` +
           `\n`;
 
         // Update `lastTimestamp` for future checks
@@ -289,7 +290,13 @@ bot.on("video", (ctx) => {
 
 bot.command("currency", (ctx) => {
   // ctx.reply("enter the amaunt");
-  solToUsd(1);
+  solToUsd(1).then((price) => {
+    if (price !== null) {
+      console.log("SOL to USD Price:", price);
+    } else {
+      console.log("Failed to fetch SOL to USD price.");
+    }
+  });
   // ctx.scene.enter("CURRENCY");
 });
 
