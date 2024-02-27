@@ -26,43 +26,61 @@ let solToUsd = async (count) => {
   }
 };
 // const bot = new Telegraf(process.env.BOT_TOKEN);
+
 const connection = new Connection("https://api.devnet.solana.com");
+
 let withdrawFunc = async (msg, userid, recipients_pub_key) => {
+  console.log("Function called");
   const text = msg;
   const args = text.split(" ");
 
   if (args.length !== 2) {
-    return "Invalid command. Use /withdraw <amount>";
+    console.log("Invalid command. Use /withdraw <amount>");
+    return;
   }
 
   const amount = parseFloat(args[1]);
 
   if (isNaN(amount) || amount <= 0) {
-    return "Invalid amount. Please enter a valid number greater than 0";
+    console.log("Invalid amount. Please enter a valid number greater than 0");
+    return;
   }
-  let user = User.findOne({ userId: userid });
-  const fromPublicKey = Keypair.fromSecretKey(
-    Buffer.from(user.publicKey, "base64")
-  ).publicKey;
-  const toPublicKey = new PublicKey(recipients_pub_key);
-
-  const transaction = new Transaction().add(
-    SystemProgram.transfer({
-      fromPubkey: fromPublicKey,
-      toPubkey: toPublicKey,
-      lamports: amount * 10 ** 9, // converting SOL to lamports (1 SOL = 10^9 lamports)
-    })
-  );
 
   try {
+    let user = await User.findOne({ userId: userid }); // Wait for the user to be found
+
+    if (!user) {
+      console.log("User not found");
+      return;
+    }
+
+    if (!user.secretKey) {
+      console.log("User secret key not found");
+      return;
+    }
+
+    const fromPublicKey = Keypair.fromSecretKey(
+      Buffer.from(user.secretKey, "base64")
+    ).publicKey;
+    const toPublicKey = new PublicKey(recipients_pub_key);
+
+    const transaction = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: fromPublicKey,
+        toPubkey: toPublicKey,
+        lamports: amount * 10 ** 9, // converting SOL to lamports (1 SOL = 10^9 lamports)
+      })
+    );
+
     const signature = await connection.sendTransaction(transaction, [
       Keypair.fromSecretKey(Buffer.from(user.secretKey, "base64")),
     ]);
+
     console.log("Transaction sent:", signature);
-    return `Withdrawal of ${amount} SOL successful. Tx: ${signature}`;
+    console.log(`Withdrawal of ${amount} SOL successful. Tx: ${signature}`);
   } catch (error) {
     console.error("Error sending transaction:", error);
-    return "Withdrawal failed. Please try again later.";
+    console.log("Withdrawal failed. Please try again later.");
   }
 };
 
@@ -81,7 +99,7 @@ let withdrawFunc = async (msg, userid, recipients_pub_key) => {
 //       //   ).innerHTML = `1 SOL  = $${priceInUsd}`;
 //     });
 //};
-module.exports = { solToUsd };
+module.exports = { solToUsd, withdrawFunc };
 // Call the function initially to display the price when the page loads
 // solToUsd();
 

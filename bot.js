@@ -13,6 +13,8 @@ const { Connection } = require("mongoose");
 const { solToUsd, getPairs } = require("./modules/functions");
 const Currency = require("./modules/scenes/currency");
 const { default: axios } = require("axios");
+const Withdraw = require("./modules/scenes/withdraw");
+// const Withdraw = require("./modules/scenes/withdraw");
 
 require("dotenv/config");
 
@@ -29,7 +31,7 @@ const DEXSCREENER_API_BASE_URL =
   "https://api.dexscreener.com/latest/dex/search/?q=solana";
 
 // Telegram bot setup
-const stage = new Scenes.Stage([registerScene, Currency]);
+const stage = new Scenes.Stage([registerScene, Currency, Withdraw]);
 const bot = new Telegraf(BOT_TOKEN);
 db();
 
@@ -219,7 +221,7 @@ bot.action("BACK_MAIN_MENU", async (ctx) => {
     }
   );
 });
-
+// Withdraw
 bot.action("NEW_PAIRS", async (ctx) => {
   let lastTimestamp = Date.now(); // Hozirgi vaqt bilan lastTimestamp ni boshlaymiz
 
@@ -287,7 +289,11 @@ bot.on("video", (ctx) => {
   console.log(ctx.update.message.video.file_id);
   ctx.reply(ctx.update.message.video.file_id);
 });
+// stage
 
+bot.command("withdraw", (ctx) => {
+  ctx.scene.enter("WITHDRAW");
+});
 bot.command("currency", (ctx) => {
   // ctx.reply("enter the amaunt");
   solToUsd(1).then((price) => {
