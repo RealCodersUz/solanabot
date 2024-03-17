@@ -306,6 +306,75 @@ bot.command("currency", (ctx) => {
   // ctx.scene.enter("CURRENCY");
 });
 
+//buy
+
+async function buySol(amount, price) {
+  const endpoint = "https://api.solana.com/v1/orders";
+
+  const payload = {
+    amount,
+    price,
+    side: "buy",
+    market: "SOL/USD", // Or another market pair
+  };
+
+  try {
+    const response = await axios.post(endpoint, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error buying SOL:", error.response.data);
+    throw new Error("Failed to buy SOL");
+  }
+}
+
+bot.command("buy_sol", async (ctx) => {
+  const args = ctx.message.text.split(" ").slice(1); // Get command arguments
+  if (args.length !== 2) {
+    return ctx.reply("Invalid command. Use /buy_sol <amount> <price>");
+  }
+
+  const amount = parseFloat(args[0]);
+  const price = parseFloat(args[1]);
+
+  if (isNaN(amount) || isNaN(price) || amount <= 0 || price <= 0) {
+    return ctx.reply("Invalid amount or price. Please enter valid numbers.");
+  }
+
+  try {
+    const order = await buySol(amount, price);
+    ctx.reply(
+      `Buy order placed for ${amount} SOL at $${price}. Order ID: ${order.id}`
+    );
+  } catch (error) {
+    ctx.reply("Failed to place buy order. Please try again later.");
+  }
+});
+bot.command('buy', async (ctx) => {
+  const tokenSymbolOrAddress = ctx.message.text.split(' ')[1]; // Get the second word after /buy
+
+  if (!tokenSymbolOrAddress) {
+    ctx.reply('Please provide a token symbol or address to buy.');
+    return;
+  }
+
+  try {
+    const response = await axios.get(`https://api.solana.com/v1/orders?token=${tokenSymbolOrAddress}`);
+
+    const orders = response.data;
+    // Process orders as needed
+    ctx.reply(`Fetched orders for ${tokenSymbolOrAddress}: ${JSON.stringify(orders)}`);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    ctx.reply('Error fetching orders. Please try again later.');
+  }
+});
+
 // actions
 const warningWords = ["/start", "/dev", "/generate", "/help"]; // Taqiqlangan so'zlarning ro'yxati
 

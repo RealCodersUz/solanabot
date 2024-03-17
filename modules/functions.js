@@ -25,7 +25,7 @@ let solToUsd = async (count) => {
     return null;
   }
 };
-// const bot = new Telegraf(process.env.BOT_TOKEN);
+// const bot = new Telegraf(process.env.BOT_TOKEN); 
 
 const connection = new Connection("https://api.devnet.solana.com");
 
@@ -36,7 +36,7 @@ let withdrawFunc = async (msg, userid, recipients_pub_key) => {
 
   if (args.length !== 2) {
     console.log("Invalid command. Use /withdraw <amount>");
-    return;
+    return; 
   }
 
   const amount = parseFloat(args[1]);
